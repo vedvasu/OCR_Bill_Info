@@ -1,0 +1,23 @@
+Name of the user: Kishro Kumar
+Billing Address: 1234 , sector 6, Indore
+Mobile nos: 9868679988
+Email Id : abc@syx.com
+
+
+Summary:  
+Bill period: 16-03-15 to 17-03-15
+Arrears:   18175.07
+Adjustments: -1074.00
+Current Demand: 10204.95
+Net amount : 27558.91
+Last payment Amount: 14610
+Last payment Date: 28-Feb-2015
+
+History:
+Billing period  						| Days | Total Bill payable
+1. 7-Feb-15 to 15-Mar-15					37		18170
+2. 7-Feb-15 to 15-Mar-15					37		18170
+3. 7-Feb-15 to 15-Mar-15					37		18170
+4. 7-Feb-15 to 15-Mar-15					37		18170
+5. 7-Feb-15 to 15-Mar-15					37		18170
+6. 7-Feb-15 to 15-Mar-15					37		18170
