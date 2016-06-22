@@ -136,7 +136,7 @@ def main():
 
 #PART B: Knearest Algorithm testing 
         
-        retval, npaResults, neigh_resp, dists = kNearest.find_nearest(npaROIResized, k = 3)
+        retval, npaResults, neigh_resp, dists = kNearest.find_nearest(npaROIResized, k = 26)
         strCurrentChar = int(npaResults[0][0])
 
 #PART C: Output for the user

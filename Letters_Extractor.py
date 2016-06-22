@@ -3,11 +3,16 @@ import numpy as np
 import operator
 
 #Global Variables
-MIN_CONTOUR_AREA = 100                                                                  
+MIN_CONTOUR_AREA = 100
 RESIZED_IMAGE_WIDTH = 20
 RESIZED_IMAGE_HEIGHT = 20
 
 class ContourWithData():
+
+    '''
+    * This class defines the characterstics of the contour
+    * Also defines the parameters which can be adjusted as per requirement to check the vaidity of coutour
+    '''
 
     npaContour = None           # contour
     boundingRect = None         # bounding rect for contour
@@ -29,16 +34,20 @@ class ContourWithData():
         return True
 
 
-class extractLetter():
+class extractLetter():              # extracting the letter from the image
 
     def __init__(self,imgPath):
-        
+
         self.img = cv2.imread(imgPath)
         self.imgCopy = self.img
         self.validContoursWithData = []
 
     def preProcessing(self):
-        
+
+        '''
+        * This function is used for converting the image into binary to form contour around the letter
+        '''
+
         imgGray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
         imgBlurred = cv2.GaussianBlur(imgGray, (5,5), 0)
         imgThresh = cv2.adaptiveThreshold(imgBlurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,11,2)
@@ -47,11 +56,16 @@ class extractLetter():
 
     def validContourDetection(self,img):
 
+        '''
+        * This function uses contourWithData class to extract the information of the contour
+        * mainly draws and extracts the valid contours from all contours array
+        '''
+
         allContoursWithData = []
-          
+
         npaContours, npaHierarchy = cv2.findContours(img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
         for npaContour in npaContours:
-        
+
             contourWithData = ContourWithData()                                             # instantiate a contour with data object
             contourWithData.npaContour = npaContour                                         # assign contour to contour with data
             contourWithData.boundingRect = cv2.boundingRect(contourWithData.npaContour)     # get the bounding rect
@@ -65,13 +79,46 @@ class extractLetter():
 
     def sortingValidContours(self):
 
+        '''
+        * We have to extract the contours in a fashion as humans read
+        * This functiom sorts the contours wrt y and then wrt x
+        '''
+
+        contour_linechange = []
+        contours_linechange_sorted=[]
+
+        self.validContoursWithData.sort(key = operator.attrgetter("intRectY"))
+        intRectY_previous = 20
+        for contourWithData in self.validContoursWithData:
+
+            if ((contourWithData.intRectY+contourWithData.intRectHeight)/2 - intRectY_previous)>25:
+                contour_linechange.sort(key = operator.attrgetter("intRectX"))
+
+                for contours in contour_linechange:
+                    contours_linechange_sorted.append(contours)
+
+                contour_linechange = []
+
+            contour_linechange.append(contourWithData)
+            intRectY_previous = (contourWithData.intRectY+contourWithData.intRectHeight)/2
+
+        self.validContoursWithData = contours_linechange_sorted
+
+
+    def sortingValidContours_Fonts(self):
+
+        '''
+        * An alternate function for sorting only for fonts .ttl to jpg converted images
+        * Images having only two lines on text
+        '''
+
         contour_linechange = []
         contours_linechange_sorted=[]
         counter = 0
         self.validContoursWithData.sort(key = operator.attrgetter("intRectY"))
-                
+
         for contourWithData in self.validContoursWithData:
-                                
+
             if counter == 0 and (contourWithData.intRectY + (contourWithData.intRectHeight/2)) > (self.imgCopy.shape[0]/2):
                 contour_linechange.sort(key = operator.attrgetter("intRectX"))
 
@@ -80,27 +127,36 @@ class extractLetter():
                 contour_linechange = []
                 counter+=1
 
-            contour_linechange.append(contourWithData) 
+            contour_linechange.append(contourWithData)
 
-        contour_linechange.sort(key = operator.attrgetter("intRectX"))        
+        contour_linechange.sort(key = operator.attrgetter("intRectX"))
         for contours in contour_linechange:
             contours_linechange_sorted.append(contours)
-              
-        self.validContoursWithData = contours_linechange_sorted  
-        
-    def output(self):
 
-        for contourWithData in self.validContoursWithData:
-            cv2.rectangle(self.imgCopy,(contourWithData.intRectX, contourWithData.intRectY),(contourWithData.intRectX + contourWithData.intRectWidth, contourWithData.intRectY + contourWithData.intRectHeight),(0, 255, 0),2)
+        self.validContoursWithData = contours_linechange_sorted
+
+    
+    def displayAndCrop(self):
+
+        for c in self.validContoursWithData:
+
+            crop = self.imgCopy[c.intRectY:c.intRectY+c.intRectHeight,c.intRectX:c.intRectX+c.intRectWidth,:]
+            cv2.rectangle(self.imgCopy,(c.intRectX, c.intRectY),(c.intRectX + c.intRectWidth, c.intRectY + c.intRectHeight),(0, 255, 0),2)
+            
             cv2.imshow('Img',cv2.resize(self.imgCopy,(1000,self.imgCopy.shape[0])))
+            cv2.imshow('Letter',cv2.resize(crop,(24,24)))
+
             cv2.waitKey(0)
 
+    
     def setup(self):
 
         self.img = self.preProcessing()
         self.validContourDetection(self.img)
         self.sortingValidContours()
-        self.output()
+        self.displayAndCrop()
 
-#validletter = extractLetter('fonts/cropped_stage1/font (6).jpg')
-#validletter.setup()
+# for i in range(1,35):
+#     print 'Font',i
+#     validletter = extractLetter('fonts/cropped_stage1/font ('+str(i)+').jpg')
+#     validletter.setup()

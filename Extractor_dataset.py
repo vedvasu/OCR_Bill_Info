@@ -1,12 +1,13 @@
 import cv2
 import numpy as np
+from Letters_Extractor import extractLetter
 
 def regionOI_extractor(numberOfFonts):
-	
+
 	'''
 	* This Function gets the region of interest from the already converted .ttf file to .jpg file(A4 landscape)
 	* The region of interest contains all the alphabets (lower and uppercase), digits and special charactors.
-	* The ROI is written in the memory and furthur used for letters extraction. 
+	* The ROI is written in the memory and furthur used for letters extraction.
 	'''
 
 	for font_number in range(1,numberOfFonts+1):			# loop runs for all the font image file
@@ -19,28 +20,28 @@ def regionOI_extractor(numberOfFonts):
 		counter1 = 0
 		counter2 = 0
 		for i in range(400,800):
-			
+
 			if counter1 == 0 and img[i,3100][0] < 100:
 				counter1+=1
 				cy1 = i
 
 			if counter1 > 0 and img[i,3100][0] > 100:
 				counter2+=1
-			
-			if counter2 > 0 and img[i,3100][0] < 100: 
+
+			if counter2 > 0 and img[i,3100][0] < 100:
 				cy2 = i
-				
+
 		#cv2.circle(img,(3000,cy1),10,(0,0,255),-1)
 		#cv2.circle(img,(3000,cy2),10,(0,0,255),-1)
 		#cv2.imshow('img',cv2.resize(img,(1000,800)))
-		
+
 		img_cropped = img[cy1+5:cy2-5,250:3000,:]
 		#cv2.imshow('img_cropped',img_cropped)
-		
-		print 'saving font '+str(font_number)
-		cv2.imwrite('fonts/cropped_stage1/font ('+ str(font_number) +').jpg',img_cropped)
 
-def letterExtractor():  
+		print 'saving font '+str(font_number)
+		#cv2.imwrite('fonts/cropped_stage1/font ('+ str(font_number) +').jpg',img_cropped)
+
+def letterExtractor(numberOfFonts):
 
 	'''
 	* This function extracts each letter from the ROI obtained from the regionOI_extractor()
@@ -50,12 +51,12 @@ def letterExtractor():
 
 	for font_number in range(1,numberOfFonts+1):			# loop runs for all the ROI image file
 
-		img = cv2.imread('fonts/cropped_stage1/font ('+ str(font_number) +').jpg')
+		#img = cv2.imread('fonts/cropped_stage1/font ('+ str(font_number) +').jpg')
 
-		
+		validLetter = extractLetter('fonts/cropped_stage1/font ('+ str(font_number) +').jpg')
+		validLetter.setup()
 
-
-regionOI_extractor(34)
+#regionOI_extractor(34)
 letterExtractor(34)
 
 
