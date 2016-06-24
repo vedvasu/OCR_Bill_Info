@@ -49,12 +49,13 @@ def letterExtractor(numberOfFonts):
 	* This dataset will be used for training the machine learining algorithm
 	'''
 
-	for font_number in range(1,numberOfFonts+1):			# loop runs for all the ROI image file
+	for font_number in range(3,numberOfFonts+1):			# loop runs for all the ROI image file
 
 		#img = cv2.imread('fonts/cropped_stage1/font ('+ str(font_number) +').jpg')
 
 		validLetter = extractLetter('fonts/cropped_stage1/font ('+ str(font_number) +').jpg')
-		validLetter.setup()
+		letter = validLetter.setup()
+
 
 #regionOI_extractor(34)
 letterExtractor(34)

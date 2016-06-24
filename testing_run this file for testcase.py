@@ -3,19 +3,16 @@ import numpy as np
 import operator
 import os
 import sys
+
 ######################################## Global Variables ###############################################
 
-MIN_CONTOUR_AREA = 120                                                                     
+MIN_CONTOUR_AREA = 20                                                                   
 RESIZED_IMAGE_WIDTH = 20
 RESIZED_IMAGE_HEIGHT = 20
 SZ=20
 bin_n = 16 # Number of bins
 affine_flags = cv2.WARP_INVERSE_MAP|cv2.INTER_LINEAR
 svm_params = dict( kernel_type = cv2.SVM_LINEAR,svm_type = cv2.SVM_C_SVC,C=2.67, gamma=5.383 )
-
-## Uncomment next two lines to view the output as text file.
-#f = open('output.txt','w')
-#sys.stdout = f
 
 #########################################################################################################
 
@@ -64,9 +61,10 @@ def main():
 
 # PART B : Loading the Image And Getting the Region of Interest
     
-    imgTestingNumbers = cv2.imread('sample.jpg')
-    imgTestingNumbers = imgTestingNumbers[400:740,70:800]    
-    imgTestingNumbers = cv2.resize(imgTestingNumbers, (1000, 600))
+    imgTestingNumbers = cv2.imread('fonts/cropped_stage1/font (1).jpg')
+    #cv2.imshow('sample',imgTestingNumbers)
+    #imgTestingNumbers = imgTestingNumbers[400:740,70:800]    
+    #imgTestingNumbers = cv2.resize(imgTestingNumbers, (1000, 600))
 
 # PART C: Image Preprocessing for forming the image as the dataset samples
     
@@ -75,6 +73,10 @@ def main():
     imgThresh = cv2.adaptiveThreshold(imgBlurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,11,2)
     imgThreshCopy = imgThresh.copy()
 
+    # cv2.imshow('imgGray',imgGray)
+    # cv2.imshow('imgBlurred',imgBlurred)
+    # cv2.imshow('imgThresh',imgThresh)
+    # cv2.imshow('imgThreshCopy',imgThreshCopy)
 
 # PART D: Detection of Contours in the image (Image is threshed)
     
@@ -120,11 +122,11 @@ def main():
     
     i=0
     intRectY_previous = 20
-    intRectX_previous = 50
     
     for contourWithData in validContoursWithData:
         i+=1 
 
+        #print contourWithData.fltArea
 # PART A: Contour Preprocessing
         cv2.rectangle(imgTestingNumbers,(contourWithData.intRectX, contourWithData.intRectY),(contourWithData.intRectX + contourWithData.intRectWidth, contourWithData.intRectY + contourWithData.intRectHeight),(0, 255, 0),2)
         
@@ -136,29 +138,22 @@ def main():
 
 #PART B: Knearest Algorithm testing 
         
-        retval, npaResults, neigh_resp, dists = kNearest.find_nearest(npaROIResized, k = 26)
+        retval, npaResults, neigh_resp, dists = kNearest.find_nearest(npaROIResized, k = 3)
         strCurrentChar = int(npaResults[0][0])
 
 #PART C: Output for the user
 
-        #cv2.namedWindow('Result '+str(i),cv2.WINDOW_NORMAL)
-        #cv2.imshow('Result '+str(i),imgROI)
+        cv2.namedWindow('Result '+str(i),cv2.WINDOW_NORMAL)
+        cv2.imshow('Result '+str(i),imgROI)
         cv2.imshow("imgTestingNumbers", imgTestingNumbers)
-        
-        if (contourWithData.intRectX - intRectX_previous) > 10:
-        	print " ", 
-        if (contourWithData.intRectY - intRectY_previous)>25:   
-            print
         if strCurrentChar >= 9:
             sys.stdout.write(chr(strCurrentChar))
         else:
             #sys.stdout.write(chr(strCurrentChar))
         	sys.stdout.write(str(strCurrentChar)) 
-        
-
-        intRectY_previous = contourWithData.intRectY
-        intRectX_previous = contourWithData.intRectX+contourWithData.intRectWidth 
-        
+        if (contourWithData.intRectY - intRectY_previous)>25:   
+            print
+        intRectY_previous = contourWithData.intRectY 
         cv2.waitKey(0)
 
         cv2.destroyAllWindows()

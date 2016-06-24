@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import operator
+import Save_data as sv
 
 #Global Variables
 MIN_CONTOUR_AREA = 100
@@ -138,25 +139,31 @@ class extractLetter():              # extracting the letter from the image
     
     def displayAndCrop(self):
 
+        i=1
         for c in self.validContoursWithData:
-
-            crop = self.imgCopy[c.intRectY:c.intRectY+c.intRectHeight,c.intRectX:c.intRectX+c.intRectWidth,:]
-            cv2.rectangle(self.imgCopy,(c.intRectX, c.intRectY),(c.intRectX + c.intRectWidth, c.intRectY + c.intRectHeight),(0, 255, 0),2)
             
-            cv2.imshow('Img',cv2.resize(self.imgCopy,(1000,self.imgCopy.shape[0])))
-            cv2.imshow('Letter',cv2.resize(crop,(24,24)))
+            crop = self.imgCopy[c.intRectY:c.intRectY+c.intRectHeight,c.intRectX:c.intRectX+c.intRectWidth]
+            sv.save_data('dataset',i,crop)
+            i+=1
+            if i > 62:
+                break
 
-            cv2.waitKey(0)
-
+            #cv2.rectangle(self.imgCopy,(c.intRectX, c.intRectY),(c.intRectX + c.intRectWidth, c.intRectY + c.intRectHeight),(0, 255, 0),2)
+            
+            #cv2.imshow('Img',cv2.resize(self.imgCopy,(1000,self.imgCopy.shape[0])))
+            #cv2.imshow('Letter',cv2.resize(crop,(24,24)))
+            #cv2.waitKey(0)
+    
     
     def setup(self):
 
         self.img = self.preProcessing()
         self.validContourDetection(self.img)
-        self.sortingValidContours()
+        self.sortingValidContours_Fonts()
         self.displayAndCrop()
 
-# for i in range(1,35):
+
+# for i in range(1,2):
 #     print 'Font',i
 #     validletter = extractLetter('fonts/cropped_stage1/font ('+str(i)+').jpg')
 #     validletter.setup()
