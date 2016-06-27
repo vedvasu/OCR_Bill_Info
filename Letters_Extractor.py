@@ -5,8 +5,8 @@ import Save_data as sv
 
 #Global Variables
 MIN_CONTOUR_AREA = 100
-RESIZED_IMAGE_WIDTH = 20
-RESIZED_IMAGE_HEIGHT = 20
+RESIZED_IMAGE_WIDTH = 24
+RESIZED_IMAGE_HEIGHT = 24
 
 class ContourWithData():
 
@@ -141,8 +141,9 @@ class extractLetter():              # extracting the letter from the image
 
         i=1
         for c in self.validContoursWithData:
-            
+                        
             crop = self.imgCopy[c.intRectY:c.intRectY+c.intRectHeight,c.intRectX:c.intRectX+c.intRectWidth]
+            crop = cv2.resize(crop,(RESIZED_IMAGE_HEIGHT,RESIZED_IMAGE_WIDTH))
             sv.save_data('dataset',i,crop)
             i+=1
             if i > 62:

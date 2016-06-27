@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 from Letters_Extractor import extractLetter
 
 def regionOI_extractor(numberOfFonts):
@@ -41,7 +42,7 @@ def regionOI_extractor(numberOfFonts):
 		print 'saving font '+str(font_number)
 		#cv2.imwrite('fonts/cropped_stage1/font ('+ str(font_number) +').jpg',img_cropped)
 
-def letterExtractor(numberOfFonts):
+def letterExtractor():
 
 	'''
 	* This function extracts each letter from the ROI obtained from the regionOI_extractor()
@@ -49,16 +50,18 @@ def letterExtractor(numberOfFonts):
 	* This dataset will be used for training the machine learining algorithm
 	'''
 
-	for font_number in range(3,numberOfFonts+1):			# loop runs for all the ROI image file
+	numberOfFonts =  len(os.listdir('fonts/cropped_stage2_manual_editing'))
+
+	for font_number in range(1,numberOfFonts+1):			# loop runs for all the ROI image file
 
 		#img = cv2.imread('fonts/cropped_stage1/font ('+ str(font_number) +').jpg')
 
-		validLetter = extractLetter('fonts/cropped_stage1/font ('+ str(font_number) +').jpg')
+		validLetter = extractLetter('fonts/cropped_stage2_manual_editing/font ('+ str(font_number) +').jpg')
 		letter = validLetter.setup()
 
 
 #regionOI_extractor(34)
-letterExtractor(34)
+letterExtractor()
 
 
 cv2.waitKey(0)

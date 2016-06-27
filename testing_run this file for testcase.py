@@ -51,17 +51,23 @@ def main():
     npaFlattenedImages= np.loadtxt("saved_data/flattened_imagesCombined.txt",np.float32) 
     npaClassifications= np.loadtxt("saved_data/classificationsCombined.txt", np.float32)
 
+
+    # npaFlattenedImages= np.loadtxt("saved_data/flattenedImage.txt",np.float32) 
+    # npaClassifications= np.loadtxt("saved_data/classifications.txt", np.float32)
+
 ############################################# PREPROCESSING AND TRAINING #########################################
 
 # PART A: Kneareat Learning Method to train the trainer with the trained Data
-    
+    print npaFlattenedImages.shape
+    print npaClassifications.shape
+
     kNearest = cv2.KNearest()
     kNearest.train(npaFlattenedImages, npaClassifications)
 
 
 # PART B : Loading the Image And Getting the Region of Interest
     
-    imgTestingNumbers = cv2.imread('fonts/cropped_stage1/font (1).jpg')
+    imgTestingNumbers = cv2.imread('img_roi1.jpg')
     #cv2.imshow('sample',imgTestingNumbers)
     #imgTestingNumbers = imgTestingNumbers[400:740,70:800]    
     #imgTestingNumbers = cv2.resize(imgTestingNumbers, (1000, 600))
