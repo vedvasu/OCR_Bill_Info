@@ -4,7 +4,7 @@ import operator
 import Save_data as sv
 
 #Global Variables
-MIN_CONTOUR_AREA = 100
+MIN_CONTOUR_AREA = 0
 RESIZED_IMAGE_WIDTH = 24
 RESIZED_IMAGE_HEIGHT = 24
 
@@ -30,7 +30,7 @@ class ContourWithData():
         self.intRectWidth = intWidth
         self.intRectHeight = intHeight
 
-    def checkIfContourIsValid(self):                            # this is oversimplified, for a production grade program
+    def checkIfContourIsValid(self):                            
         if self.fltArea < MIN_CONTOUR_AREA: return False        # much better validity checking would be necessary
         return True
 
@@ -83,16 +83,18 @@ class extractLetter():              # extracting the letter from the image
         '''
         * We have to extract the contours in a fashion as humans read
         * This functiom sorts the contours wrt y and then wrt x
+        * Return valid contours as these are to be tested for OCR
         '''
 
         contour_linechange = []
         contours_linechange_sorted=[]
-
+        
         self.validContoursWithData.sort(key = operator.attrgetter("intRectY"))
         intRectY_previous = 20
+        
         for contourWithData in self.validContoursWithData:
-
-            if ((contourWithData.intRectY+contourWithData.intRectHeight)/2 - intRectY_previous)>25:
+                                                    
+            if (contourWithData.intRectY - intRectY_previous)>25:   
                 contour_linechange.sort(key = operator.attrgetter("intRectX"))
 
                 for contours in contour_linechange:
@@ -101,11 +103,14 @@ class extractLetter():              # extracting the letter from the image
                 contour_linechange = []
 
             contour_linechange.append(contourWithData)
-            intRectY_previous = (contourWithData.intRectY+contourWithData.intRectHeight)/2
+            intRectY_previous = contourWithData.intRectY 
+        
+        self.validContoursWithData = contours_linechange_sorted  
+        
+        
+        return self.validContoursWithData
 
-        self.validContoursWithData = contours_linechange_sorted
-
-
+    
     def sortingValidContours_Fonts(self):
 
         '''
@@ -156,15 +161,22 @@ class extractLetter():              # extracting the letter from the image
             #cv2.waitKey(0)
     
     
-    def setup(self):
+    def setup(self,key):                         # key = 1 for dataset creation             key = 2 for testing ML     
 
         self.img = self.preProcessing()
         self.validContourDetection(self.img)
-        self.sortingValidContours_Fonts()
-        self.displayAndCrop()
+
+        if key == 1:
+            self.sortingValidContours_Fonts()
+            self.displayAndCrop()
+
+        if key == 2:
+            validContours = self.sortingValidContours()
+
+            return validContours
 
 
 # for i in range(1,2):
 #     print 'Font',i
 #     validletter = extractLetter('fonts/cropped_stage1/font ('+str(i)+').jpg')
-#     validletter.setup()
+#     validletter.setup(1)

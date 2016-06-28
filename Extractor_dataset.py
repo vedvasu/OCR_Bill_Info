@@ -57,7 +57,7 @@ def letterExtractor():
 		#img = cv2.imread('fonts/cropped_stage1/font ('+ str(font_number) +').jpg')
 
 		validLetter = extractLetter('fonts/cropped_stage2_manual_editing/font ('+ str(font_number) +').jpg')
-		letter = validLetter.setup()
+		letter = validLetter.setup(1)
 
 
 #regionOI_extractor(34)
