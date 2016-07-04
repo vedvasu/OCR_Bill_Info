@@ -88,12 +88,12 @@ def main():
         crop = cv2.resize(crop, (RESIZED_IMAGE_WIDTH, RESIZED_IMAGE_HEIGHT))
 
 ########################### K-nearest trainer call#######################################        
-        # knn = K_nearestMethod()
-        # displayTrainerResult(knn.test(crop,3))
+        knn = K_nearestMethod()
+        displayTrainerResult(knn.test(crop,3))
 
 ################################# SVM trainer call ######################################
-        sv = SVM_method()        
-        displayTrainerResult(sv.test(crop))
+        # sv = SVM_method()        
+        # displayTrainerResult(sv.test(crop))
 
 
         cv2.imshow('IMG',img)
