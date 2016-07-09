@@ -12,6 +12,7 @@ def main(num):
     img = cv2.imread('Sample Images/sample ('+str(num)+').jpg') 
 
     imgEdges = cv2.Canny(img,100,200)
+    
     #ret,imgThresh1 = cv2.threshold(imgEdges,150,255,cv2.THRESH_BINARY_INV)
 
     #imgLaplacian = cv2.Laplacian(img,cv2.CV_64F)
@@ -37,6 +38,7 @@ def main(num):
     ret,imgThresh = cv2.threshold(imgEdges,127,255,cv2.THRESH_BINARY_INV)
     
     erosion = cv2.erode(imgThresh,kernel,iterations = 1)
+    erosion = cv2.medianBlur(erosion, 3)
     erosionCopy = erosion.copy()
     #img1 = cv2.cvtColor(erosion, cv2.COLOR_GRAY2RGB)
     # dilation = cv2.dilate(imgThresh, kernel, iterations = 1)
@@ -47,21 +49,28 @@ def main(num):
     npaContours, npaHierarchy = cv2.findContours(erosion,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
     #print len(npaContours)
-    for c in npaContours:
-        if cv2.contourArea(c)>10 and cv2.contourArea(c)<8000: 
-            [intX, intY, intWidth, intHeight] = cv2.boundingRect(c)
+    # for c in npaContours:
+    #     if cv2.contourArea(c)>10 and cv2.contourArea(c)<8000: 
+    #         [intX, intY, intWidth, intHeight] = cv2.boundingRect(c)
 
-            crop = erosionCopy[intY:intY+intHeight,intX:intX+intWidth]    
+    #         crop = erosionCopy[intY:intY+intHeight,intX:intX+intWidth]    
             
-            cv2.rectangle(img,(intX, intY),(intX + intWidth, intY + intHeight),(127, 255, 0),1)
-            # cv2.imshow('crop',crop)
-            # cv2.waitKey(0)
+    #         cv2.rectangle(img,(intX, intY),(intX + intWidth, intY + intHeight),(127, 255, 0),1)
+    #         # cv2.imshow('crop',crop)
+    #         # cv2.waitKey(0)
 
+    pixelpoints = 0
     #filterContour(npaContours)
+    mask = np.zeros(imgThresh.shape,np.uint8)
     mask_testing = np.zeros(imgThresh.shape,np.uint8)
     heri_prev1 = npaHierarchy[0][0][2]
     heri_prev2 = npaHierarchy[0][0][3]
+
+
+####################################################################################################################################################
+
     for c in range (0,len(npaContours)):
+        flag_wrong_contour = 0
         if cv2.contourArea(npaContours[c])>10 and cv2.contourArea(npaContours[c])<8000:
             heri_next = npaHierarchy[0][c][3]
             #print cv2.contourArea(npaContours[c]),npaHierarchy[0][c]
@@ -69,15 +78,38 @@ def main(num):
             if (heri_prev1 - heri_next == 1):
                 #print 'yoo baby'
                 cv2.drawContours(mask,[npaContours[c]],0,0,-1)
-                cv2.drawContours(mask_testing,[npaContours[c]],0,0,-1)
+                pixelpoints = cv2.findNonZero(mask)
+                for i in range(len(pixelpoints)):
+                 
+                    if pixelpoints[i][0][0] == 1 or pixelpoints[i][0][0] == 198 or pixelpoints[i][0][1] == 1 or pixelpoints[i][0][1] == 198:
+
+                        if erosionCopy[pixelpoints[i][0][1],pixelpoints[i][0][0]] == 255:
+                            cv2.circle(mask,(pixelpoints[i][0][0],pixelpoints[i][0][1]),1,128,-1)
+                            flag_wrong_contour = 1               
+                
+                if flag_wrong_contour == 0:   
+                    cv2.drawContours(mask_testing,[npaContours[c]],0,0,-1)
+                
             ### Pixel points of a contour
             else:
-                if cv2.contourArea(npaContours[c])>200:
+                if cv2.contourArea(npaContours[c])>=200:
                     mask = np.zeros(imgThresh.shape,np.uint8)
                     cv2.drawContours(mask,[npaContours[c]],0,255,-1)
-                    cv2.drawContours(mask_testing,[npaContours[c]],0,255,-1)
                     pixelpoints = cv2.findNonZero(mask)
-            #cv2.imshow('mask',mask)
+                    for i in range(len(pixelpoints)):
+                        
+                        if pixelpoints[i][0][0] == 1 or pixelpoints[i][0][0] == 198 or pixelpoints[i][0][1] == 1 or pixelpoints[i][0][1] == 198:
+    
+                            if erosionCopy[pixelpoints[i][0][1],pixelpoints[i][0][0]] == 255:
+                                cv2.circle(mask,(pixelpoints[i][0][0],pixelpoints[i][0][1]),1,128,-1)
+                                flag_wrong_contour = 1               
+                    if flag_wrong_contour == 0:     
+                        cv2.drawContours(mask_testing,[npaContours[c]],0,255,-1)
+                    
+                    pixelpoints = cv2.findNonZero(mask)
+            
+            #cv2.imshow('mask',mask_testing)
+            #cv2.imshow('erosionCopy',erosionCopy)
 
             #print pixelpoints
             #cv2.waitKey(0)
@@ -86,7 +118,7 @@ def main(num):
     
     ret,mask_testing = cv2.threshold(mask_testing,127,255,cv2.THRESH_BINARY_INV)
 
-
+#################################################################################################################################################################
 
 
     #     for i in range(200):
@@ -104,14 +136,63 @@ def main(num):
 
     # print erosion
     # print erosion.shape
-    cv2.imshow('img',img)
-    cv2.imshow('mask',mask_testing)
-    cv2.imshow('imgEdges',imgEdges)
     
-    cv2.imshow('imgThresh',imgThresh)
-   
-    cv2.imshow('erosion',erosion)
-    cv2.imshow('erosionCopy',erosionCopy)
+##### OPERATION AFTER FIRST SET COMPLETED
+
+    print "Pass 1 Completed.."
+    img_pass1 = mask_testing.copy()
+    img_pass1Copy = img_pass1.copy()
+    npaContours, npaHierarchy = cv2.findContours(img_pass1,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    
+    #print len(npaContours)
+
+    # for c in npaContours:
+    #     if cv2.contourArea(c)>10 and cv2.contourArea(c)<8000: 
+    #         [intX, intY, intWidth, intHeight] = cv2.boundingRect(c)
+
+    #         crop = img_pass1Copy[intY:intY+intHeight,intX:intX+intWidth]    
+
+    #         cv2.rectangle(img,(intX, intY),(intX + intWidth, intY + intHeight),(127, 255, 0),1)
+    #         cv2.imshow('crop',crop)
+    #         cv2.waitKey(0)
+
+    r = [0,0]
+    flag = 0 
+    boundary_points = []
+    for c in range(1,len(npaContours)):
+        
+        mask = np.zeros(img_pass1Copy.shape,np.uint8)
+        cv2.drawContours(mask,npaContours,c,127,1)
+
+        for i in range(0,mask.shape[0]):
+            for j in range(0,mask.shape[1]):
+                if img_pass1Copy[j,i] == 255 and mask[j,i] == 127:
+                    boundary_points.append([j,i])
+                    cv2.circle(mask,(i,j),1,200,-1)
+        
+        #     if npaContours[c][i][0][0] == r[0] and npaContours[c][i][0][1] == r[1]: 
+        #         flag = 1
+        #         print 'bhak'
+        #         break    
+        #     r = npaContours[c][i][0]
+
+        # cv2.drawContours(mask,[npaContours[c]],0,255,-1)
+        # pixelpoints = cv2.findNonZero(mask)
+        # for i in range(len(pixelpoints)):
+        #     if img_pass1Copy[pixelpoints[i][0][1]+5,pixelpoints[i][0][0]+5] == 255 or img_pass1Copy[pixelpoints[i][0][1]-5,pixelpoints[i][0][0]-5] == 255:
+        #         cv2.circle(mask,(pixelpoints[i][0][0],pixelpoints[i][0][1]),1,128,0)
+        cv2.imshow('mask',mask)
+        cv2.waitKey(0)
+                    
+    cv2.imshow('img',img)
+    #cv2.imshow('mask',mask_testing)
+    #cv2.imshow('imgEdges',imgEdges)
+    #cv2.imshow('imgThresh',imgThresh)
+    #cv2.imshow('erosion',erosion)
+    #cv2.imshow('erosionCopy',erosionCopy)
+
+
+    cv2.imshow('img_pass1',img_pass1Copy)
 
     # cv2.imshow('dilation',dilation)
     # cv2.imshow('opening',opening)
@@ -126,5 +207,5 @@ def main(num):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-for i in range(1,30):
+for i in range(9,10):
     main(i)
