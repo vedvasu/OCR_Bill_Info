@@ -1,10 +1,10 @@
 import cv2
 import numpy as np
 import sys
-from Letters_Extractor import extractLetter as ex 
+import General_Letter_Extractor as ex 
 
 ##################################### GLOBAL VARIABLES ########################################
-source_path = 'Sample Images/sample (21).jpg'                   # test image path
+source_path = 'samples/fb.jpg'                   # test image path
 classification_path = 'saved_data/flattenedImages.txt'          # training set path
 flattened_path = 'saved_data/classifications.txt'
 RESIZED_IMAGE_WIDTH = 24
@@ -58,47 +58,49 @@ class SVM_method():
 
 def displayTrainerResult(input):
 
+    result = []
     ascii_code = int(input[0][0])                       # trainer returns the value in the form  eg. [[.97]]
     if ascii_code >= 9:                                 # code <= 9 means it is a digit else alphabet
-            sys.stdout.write(chr(ascii_code))
+            #sys.stdout.write(chr(ascii_code))
+            return(chr(ascii_code))
     else:
-            sys.stdout.write(str(ascii_code)) 
-        
+            #sys.stdout.write(str(ascii_code)) 
+            return(str(ascii_code))
 
 
-def main():
+def setup(source_path):
 
     img = cv2.imread(source_path)
     
     '''
-    * Module Letter_Extractor has been used to extract letters as in fonts
+    * Module Letter_Extractor (general) has been used to extract letters as in fonts
+                - This module is supposed to give a image having every letter with black on white background
+                - Also every letter should be seperate to form seperate contours.
+
     * But due to randomness of images in the logos (variable colour combinations) this procedure
         can not be used to indentify letters for general case
     * A procedure which can extract letter from any general image is required.......Still be be developed 
     '''
-    
-    contours = ex(source_path).setup(2)                     # Key is 2 for getting contour set
-    imgThresh = ex(source_path).preProcessing()
 
-    for c in contours:
-        
-        crop = imgThresh[c.intRectY:c.intRectY+c.intRectHeight,c.intRectX:c.intRectX+c.intRectWidth]    
-        
-        cv2.rectangle(img,(c.intRectX, c.intRectY),(c.intRectX + c.intRectWidth, c.intRectY + c.intRectHeight),(0, 255, 0),2)
+    letters_recognised = []
+    imgLetters, listLetters = ex.setup(img)     # image description in first point of above comments
+    
+    for crop in listLetters:
+
         crop = cv2.resize(crop, (RESIZED_IMAGE_WIDTH, RESIZED_IMAGE_HEIGHT))
 
 ########################### K-nearest trainer call#######################################        
         knn = K_nearestMethod()
-        displayTrainerResult(knn.test(crop,3))
+        letters_recognised.append(displayTrainerResult(knn.test(crop,3)))                # recognising with 3 nearest neighbour
 
 ################################# SVM trainer call ######################################
         # sv = SVM_method()        
-        # displayTrainerResult(sv.test(crop))
+        # displayTrainerResult(sv.test(crop)
 
+        #cv2.imshow('img',img)
+        #cv2.imshow('crop',crop)
+        #cv2.waitKey(0)
 
-        cv2.imshow('IMG',img)
-        cv2.imshow('crop',crop)
-        cv2.waitKey(0)
+    return letters_recognised
 
-
-main()
+#setup(source_path)

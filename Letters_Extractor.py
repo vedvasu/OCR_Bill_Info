@@ -1,10 +1,10 @@
 import cv2
 import numpy as np
 import operator
-import Save_data as sv
+#import Save_data as sv
 
 #Global Variables
-MIN_CONTOUR_AREA = 0
+MIN_CONTOUR_AREA = 10
 RESIZED_IMAGE_WIDTH = 24
 RESIZED_IMAGE_HEIGHT = 24
 
@@ -51,7 +51,7 @@ class extractLetter():              # extracting the letter from the image
 
         imgGray = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
         imgBlurred = cv2.GaussianBlur(imgGray, (5,5), 0)
-        imgThresh = cv2.adaptiveThreshold(imgBlurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,11,2)
+        imgThresh = cv2.adaptiveThreshold(imgBlurred,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
 
         return imgThresh
 

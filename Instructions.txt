@@ -1,0 +1,13 @@
+Please read the OCR based Implementation.py file for knowing the function of every module.
+
+For running the code for the fb.jpg:
+
+		- Run the file database_matching.py
+		- It accesses other modules as required
+
+Results are stored in results folder as:
+	
+		- images of the result files
+		- textfile containing details of results with 50 samples in test_cases folder
+
+To view results for other files change the variable source_path with the path of your image.
