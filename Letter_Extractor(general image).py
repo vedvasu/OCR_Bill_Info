@@ -159,6 +159,7 @@ def main(num):
     r = [0,0]
     flag = 0 
     boundary_points = []
+    flag_mid = 0
     for c in range(1,len(npaContours)):
         
         mask = np.zeros(img_pass1Copy.shape,np.uint8)
@@ -168,7 +169,10 @@ def main(num):
             for j in range(0,mask.shape[1]):
                 if img_pass1Copy[j,i] == 255 and mask[j,i] == 127:
                     boundary_points.append([j,i])
-                    cv2.circle(mask,(i,j),1,200,-1)
+                    print erosionCopy[j,i]
+                      if erosionCopy[j,i] == 0:                                 ''' WORKING HERE !!!!!!!!!!!!!!!'''
+                        print 'yeah'
+                    cv2.circle(erosionCopy,(i,j),1,200,-1)
         
         #     if npaContours[c][i][0][0] == r[0] and npaContours[c][i][0][1] == r[1]: 
         #         flag = 1
@@ -181,7 +185,9 @@ def main(num):
         # for i in range(len(pixelpoints)):
         #     if img_pass1Copy[pixelpoints[i][0][1]+5,pixelpoints[i][0][0]+5] == 255 or img_pass1Copy[pixelpoints[i][0][1]-5,pixelpoints[i][0][0]-5] == 255:
         #         cv2.circle(mask,(pixelpoints[i][0][0],pixelpoints[i][0][1]),1,128,0)
+        #print boundary_points
         cv2.imshow('mask',mask)
+        cv2.imshow('erosionCopy',erosionCopy)
         cv2.waitKey(0)
                     
     cv2.imshow('img',img)
@@ -189,7 +195,7 @@ def main(num):
     #cv2.imshow('imgEdges',imgEdges)
     #cv2.imshow('imgThresh',imgThresh)
     #cv2.imshow('erosion',erosion)
-    #cv2.imshow('erosionCopy',erosionCopy)
+    cv2.imshow('erosionCopy',erosionCopy)
 
 
     cv2.imshow('img_pass1',img_pass1Copy)
