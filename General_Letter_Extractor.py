@@ -109,19 +109,19 @@ def operationsStage2_ContourFiltering(erosion):
 
     print len(npaContours)
     for c in range (0,len(npaContours)):
-        if cv2.contourArea(npaContours[c])>10 and cv2.contourArea(npaContours[c])<8000: 
-            # [intX, intY, intWidth, intHeight] = cv2.boundingRect(c)
+        #if cv2.contourArea(npaContours[c])>10 and cv2.contourArea(npaContours[c])<8000: 
+        # [intX, intY, intWidth, intHeight] = cv2.boundingRect(c)
 
-            # crop = erosionCopy[intY:intY+intHeight,intX:intX+intWidth]    
-            
-            # cv2.rectangle(img,(intX, intY),(intX + intWidth, intY + intHeight),(127, 255, 0),1)
-            test = np.zeros(erosionCopy.shape,np.uint8)
-            
-            print cv2.contourArea(npaContours[c]),npaHierarchy[0][c]
-            cv2.drawContours(test,[npaContours[c]],-1,255,-1)
+        # crop = erosionCopy[intY:intY+intHeight,intX:intX+intWidth]    
+        
+        # cv2.rectangle(img,(intX, intY),(intX + intWidth, intY + intHeight),(127, 255, 0),1)
+        test = np.zeros(erosionCopy.shape,np.uint8)
+        
+        print cv2.contourArea(npaContours[c]),npaHierarchy[0][c]
+        cv2.drawContours(test,[npaContours[c]],-1,255,-1)
 
-            cv2.imshow('test_image',test)
-            cv2.waitKey(0)
+        cv2.imshow('test_image',test)
+        cv2.waitKey(0)
 
     pixelpoints = 0
     mask_testing = np.zeros(erosionCopy.shape,np.uint8)
@@ -143,8 +143,6 @@ def operationsStage2_ContourFiltering(erosion):
             * Else contours are included normally as white
             '''
             #if (heri_prev1 - heri_next == 1) and heri_prev2 != heri_next:
-            
-            if heir
 
             if heri_prev2 != -1:
 
@@ -224,7 +222,7 @@ def operationsStage2_ContourFiltering(erosion):
 
     #cv2.imshow('erosion',erosion)
     cv2.imshow('erosionCopy',erosionCopy)
-    cv2.imshow('mask',mask_testing)
+    cv2.imshow('mask',mask_testing) 
 
     return mask_testing
 
@@ -305,7 +303,7 @@ def setup(img):
     result = erosion 
     #return result, letters_array
 
-for i in range(29,31):
+for i in range(1,3):
     img = cv2.imread('samples/sample (' + str(i) + ').jpg') 
     out = setup(img)
     #cv2.imshow('out',out)
