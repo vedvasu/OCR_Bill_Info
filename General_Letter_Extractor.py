@@ -115,93 +115,221 @@ def operationsStage2_ContourFiltering(erosion):
         # crop = erosionCopy[intY:intY+intHeight,intX:intX+intWidth]    
         
         # cv2.rectangle(img,(intX, intY),(intX + intWidth, intY + intHeight),(127, 255, 0),1)
+        
+        #print npaContours[c]
+        maxi = npaContours[c][0][0][0]
+        mini = npaContours[c][0][0][0]
+
+        for k in range(len(npaContours[c])):
+            #print npaContours[c][k][0] 
+            if npaContours[c][k][0][0] > maxi:
+                maxi = npaContours[c][k][0][0]
+            if npaContours[c][k][0][1] > maxi:
+                maxi = npaContours[c][k][0][1]
+            if npaContours[c][k][0][0] < mini:
+                mini = npaContours[c][k][0][0]
+            if npaContours[c][k][0][1] < mini:
+                mini = npaContours[c][k][0][1]
+
+
+        #print maxi,mini
+    
         test = np.zeros(erosionCopy.shape,np.uint8)
         
         print cv2.contourArea(npaContours[c]),npaHierarchy[0][c]
-        cv2.drawContours(test,[npaContours[c]],-1,255,-1)
-
+        cv2.drawContours(test,[npaContours[c]],-1,255,0)
         cv2.imshow('test_image',test)
-        cv2.waitKey(0)
+        #cv2.waitKey(0)
 
+    
+###################
+    # heri_child1 = npaHierarchy[0][0][2]
+    # heri_parent1 = npaHierarchy[0][0][3]
+
+    '''
+    * This part seperated contour on the basis of heirarchy level
+    '''
+    relatives = []
+    home_contours = []
+    for c in range (0,len(npaContours)):
+        
+        if cv2.contourArea(npaContours[c]) > 10 and cv2.contourArea(npaContours[c]) < 8000:
+            heri_child = npaHierarchy[0][c][2]
+            
+            maxi = npaContours[c][0][0][0]
+            mini = npaContours[c][0][0][0]
+
+            for k in range(len(npaContours[c])):
+                #print npaContours[c][k][0] 
+                if npaContours[c][k][0][0] > maxi:
+                    maxi = npaContours[c][k][0][0]
+                if npaContours[c][k][0][1] > maxi:
+                    maxi = npaContours[c][k][0][1]
+                if npaContours[c][k][0][0] < mini:
+                    mini = npaContours[c][k][0][0]
+                if npaContours[c][k][0][1] < mini:
+                    mini = npaContours[c][k][0][1]
+
+
+            #heri_parent = npaHierarchy[0][c][3]
+
+            # if heri_child1 == -1 and heri_child == -1:
+            #   relatives.append(c)
+            #   home_contours.append(relatives)
+            #   relatives = []
+
+            #print mini,maxi
+            #if maxi != 197 and mini != 2:
+            if heri_child != -1:
+                relatives.append(c)
+            
+            else:
+                relatives.append(c)
+                home_contours.append(relatives)
+                relatives = []
+
+            #heri_child1 = npaHierarchy[0][c][2]
+            #heri_parent1 = npaHierarchy[0][c][3]
+
+    #print len(home_contours),len(relatives)
+
+########################
+#########################################################################################################################################
+    
     pixelpoints = 0
     mask_testing = np.zeros(erosionCopy.shape,np.uint8)
-    heri_prev1 = npaHierarchy[0][0][2]
-    heri_prev2 = npaHierarchy[0][0][2]
 
-####################################################################################################################################################
 
-    for c in range (0,len(npaContours)):
-        flag_wrong_contour = 0
-        '''
-        * The contour area should be reasonable for the text 
-        '''
-        if cv2.contourArea(npaContours[c]) > 10 and cv2.contourArea(npaContours[c]) < 8000:
-            heri_next = npaHierarchy[0][c][3]
-            #print cv2.contourArea(npaContours[c]),npaHierarchy[0][c]
-            '''
-            * First condition for including the contours inside contours as black for letters like R, B(hierarchy used)
-            * Else contours are included normally as white
-            '''
-            #if (heri_prev1 - heri_next == 1) and heri_prev2 != heri_next:
+    for i in range(len(home_contours)):
 
-            if heri_prev2 != -1:
+        # if npaHierarchy[0][home_contours[i][0]][3] == -1 and npaHierarchy[0][home_contours[i][0]][2] == -1:
 
-                print 'yes hier', heri_prev1,heri_next,heri_prev1 - heri_next
-                mask = np.zeros(erosionCopy.shape,np.uint8)
-                cv2.drawContours(mask,[npaContours[c]],0,0,-1)
-                pixelpoints = cv2.findNonZero(mask)
+        #     print npaContours[home_contours[i][0]]
+        #     cv2.waitKey(0)
+
+        #     continue
+
+        if len(home_contours[i]) == 1:
                 
-                ############# No longer valid as a black rectangle created already (below condition is always flase)
-                # '''
-                # * This condition is to remove the points unwanted contours by the edges of image
-                # '''
-                # for i in range(len(pixelpoints)):
-                 
-                #     if pixelpoints[i][0][0] == 1 or pixelpoints[i][0][0] == 198 or pixelpoints[i][0][1] == 1 or pixelpoints[i][0][1] == 198:
+            # mask = np.zeros(erosionCopy.shape,np.uint8)
+            # cv2.drawContours(mask,[npaContours[home_contours[i][0]]],0,255,-1)
+            # pixelpoints = cv2.findNonZero(mask)
+            cv2.drawContours(mask_testing,[npaContours[home_contours[i][0]]],0,255,-1)
 
-                #         if erosionCopy[pixelpoints[i][0][1],pixelpoints[i][0][0]] == 255:
-                #             cv2.circle(mask,(pixelpoints[i][0][0],pixelpoints[i][0][1]),1,128,-1)
-                #             flag_wrong_contour = 1               
-                
-                # if flag_wrong_contour == 0:   
-                #     cv2.drawContours(mask_testing,[npaContours[c]],0,0,-1)
-                cv2.drawContours(mask_testing,[npaContours[c]],0,255,-1)        #include this line only if above line is commented
+        
+        elif len(home_contours[i]) == 2:
 
+            if npaHierarchy[0][home_contours[i][0]][3] == -1:
+                cv2.drawContours(mask_testing,[npaContours[home_contours[i][0]]],0,255,-1)
+                cv2.drawContours(mask_testing,[npaContours[home_contours[i][0]]],0,0,-1)    
+            
+            else:
+                # mask = np.zeros(erosionCopy.shape,np.uint8)
+                # cv2.drawContours(mask,[npaContours[home_contours[i][1]]],0,255,-1)
+                # pixelpoints = cv2.findNonZero(mask)
+                cv2.drawContours(mask_testing,[npaContours[home_contours[i][1]]],0,255,-1)
 
-            ### Pixel points of a contour
-            if npaHierarchy[0][c][3] == -1:
-                if cv2.contourArea(npaContours[c]) >= 200:
-                    
-                    print 'no heir'
-                    mask = np.zeros(erosionCopy.shape,np.uint8)
-                    cv2.drawContours(mask,[npaContours[c]],0,255,-1)
-                    pixelpoints = cv2.findNonZero(mask)
-                    
-                    
-                    ############# No longer valid as a black rectangle created already (below condition is always flase)
-                    # for i in range(len(pixelpoints)):
-                        
-                    #     if pixelpoints[i][0][0] == 1 or pixelpoints[i][0][0] == 198 or pixelpoints[i][0][1] == 1 or pixelpoints[i][0][1] == 198:
-    
-                    #         if erosionCopy[pixelpoints[i][0][1],pixelpoints[i][0][0]] == 255:
-                    #             cv2.circle(mask,(pixelpoints[i][0][0],pixelpoints[i][0][1]),1,128,-1)
-                    #             flag_wrong_contour = 1               
-                    # if flag_wrong_contour == 0:     
-                    #     cv2.drawContours(mask_testing,[npaContours[c]],0,255,-1)
-                    cv2.drawContours(mask_testing,[npaContours[c]],0,255,-1)     #include this line only if above line is commented
-                                
-            cv2.imshow('mask',mask_testing)
-            #cv2.imshow('erosionCopy',erosionCopy)
+        else:
 
-            #print pixelpoints
-            cv2.waitKey(0)
+            if npaHierarchy[0][home_contours[i][0]][3] == -1:
+                cv2.drawContours(mask_testing,[npaContours[home_contours[i][0]]],0,255,-1)
+                cv2.drawContours(mask_testing,[npaContours[home_contours[i][len(home_contours[i])-1]]],0,0,-1)    
+            
+            else:
+                # mask = np.zeros(erosionCopy.shape,np.uint8)
+                # cv2.drawContours(mask,[npaContours[home_contours[i][1]]],0,255,-1)
+                # cv2.drawContours(mask,[npaContours[home_contours[i][1]]],0,255,-1)
+                # pixelpoints = cv2.findNonZero(mask)
+                cv2.drawContours(mask_testing,[npaContours[home_contours[i][1]]],0,255,-1)
+                cv2.drawContours(mask_testing,[npaContours[home_contours[i][len(home_contours[i])-1]]],0,0,-1)
 
-            heri_prev1 = npaHierarchy[0][c][2]
-            if c>0:
-                heri_prev2 = npaHierarchy[0][c-1][2]
+        #cv2.imshow('mask',mask_testing)
+        #cv2.waitKey(0)
+
     ret,mask_testing = cv2.threshold(mask_testing,127,255,cv2.THRESH_BINARY_INV)
 
-#################################################################################################################################################################
+# ####################################################################################################################################################
+############ Better method above
+#     for c in range (0,len(npaContours)):
+#         flag_wrong_contour = 0
+#         '''
+#         * The contour area should be reasonable for the text 
+#         '''
+#         if cv2.contourArea(npaContours[c]) > 10 and cv2.contourArea(npaContours[c]) < 8000:
+            
+#             heri_child = npaHierarchy[0][c][2]
+#             heri_parent = npaHierarchy[0][c][3]
+#             #print cv2.contourArea(npaContours[c]),npaHierarchy[0][c]
+#             '''
+#             * First condition for including the contours inside contours as black for letters like R, B(hierarchy used)
+#             * Else contours are included normally as white
+#             '''
+#             if heri_child == -1:
+                
+#                 print 'Contour is having no childer'
+#                 mask = np.zeros(erosionCopy.shape,np.uint8)
+#                 cv2.drawContours(mask,[npaContours[c]],0,0,-1)
+#                 pixelpoints = cv2.findNonZero(mask)
+#                 cv2.drawContours(mask_testing,[npaContours[c]],0,255,-1)
+
+#             # if heri_prev2 != -1:
+
+#             #     print 'yes hier', heri_prev1,heri_next,heri_prev1 - heri_next
+#             #     mask = np.zeros(erosionCopy.shape,np.uint8)
+#             #     cv2.drawContours(mask,[npaContours[c]],0,0,-1)
+#             #     pixelpoints = cv2.findNonZero(mask)
+                
+#             #     ############# No longer valid as a black rectangle created already (below condition is always flase)
+#             #     # '''
+#             #     # * This condition is to remove the points unwanted contours by the edges of image
+#             #     # '''
+#             #     # for i in range(len(pixelpoints)):
+                 
+#             #     #     if pixelpoints[i][0][0] == 1 or pixelpoints[i][0][0] == 198 or pixelpoints[i][0][1] == 1 or pixelpoints[i][0][1] == 198:
+
+#             #     #         if erosionCopy[pixelpoints[i][0][1],pixelpoints[i][0][0]] == 255:
+#             #     #             cv2.circle(mask,(pixelpoints[i][0][0],pixelpoints[i][0][1]),1,128,-1)
+#             #     #             flag_wrong_contour = 1               
+                
+#             #     # if flag_wrong_contour == 0:   
+#             #     #     cv2.drawContours(mask_testing,[npaContours[c]],0,0,-1)
+#             #     cv2.drawContours(mask_testing,[npaContours[c]],0,255,-1)        #include this line only if above line is commented
+
+
+#             # ### Pixel points of a contour
+#             # if npaHierarchy[0][c][3] == -1:
+#             #     if cv2.contourArea(npaContours[c]) >= 200:
+                    
+#             #         print 'no heir'
+#             #         mask = np.zeros(erosionCopy.shape,np.uint8)
+#             #         cv2.drawContours(mask,[npaContours[c]],0,255,-1)
+#             #         pixelpoints = cv2.findNonZero(mask)
+                    
+                    
+#             #         ############# No longer valid as a black rectangle created already (below condition is always flase)
+#             #         # for i in range(len(pixelpoints)):
+                        
+#             #         #     if pixelpoints[i][0][0] == 1 or pixelpoints[i][0][0] == 198 or pixelpoints[i][0][1] == 1 or pixelpoints[i][0][1] == 198:
+    
+#             #         #         if erosionCopy[pixelpoints[i][0][1],pixelpoints[i][0][0]] == 255:
+#             #         #             cv2.circle(mask,(pixelpoints[i][0][0],pixelpoints[i][0][1]),1,128,-1)
+#             #         #             flag_wrong_contour = 1               
+#             #         # if flag_wrong_contour == 0:     
+#             #         #     cv2.drawContours(mask_testing,[npaContours[c]],0,255,-1)
+#             #         cv2.drawContours(mask_testing,[npaContours[c]],0,255,-1)     #include this line only if above line is commented
+                                
+#             cv2.imshow('mask',mask_testing)
+#             #cv2.imshow('erosionCopy',erosionCopy)
+
+#             #print pixelpoints
+#             cv2.waitKey(0)
+
+#             heri_prev1 = npaHierarchy[0][c][2]
+#             if c>0:
+#                 heri_prev2 = npaHierarchy[0][c-1][2]
+#     ret,mask_testing = cv2.threshold(mask_testing,127,255,cv2.THRESH_BINARY_INV)
+
+# #################################################################################################################################################################
 
 
     #     for i in range(200):
@@ -223,6 +351,7 @@ def operationsStage2_ContourFiltering(erosion):
     #cv2.imshow('erosion',erosion)
     cv2.imshow('erosionCopy',erosionCopy)
     cv2.imshow('mask',mask_testing) 
+    cv2.imwrite('mask_testing.jpg',mask_testing)
 
     return mask_testing
 
@@ -239,7 +368,18 @@ def operationsStage3_nontextContoursFiltering(img_pass1):
 
     img_pass1Copy = img_pass1.copy()
     npaContours, npaHierarchy = cv2.findContours(img_pass1,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-    
+    cv2.drawContours(img_pass1Copy,npaContours,-1,127,2)
+
+    print len(npaContours)
+
+    '''
+    for i in range(1,len(npaContours)):
+
+        cv2.drawContours(img_pass1Copy,[npaContours[i]],0,127,-1)
+        cv2.imshow('imgPass1Copy',img_pass1Copy)
+        cv2.waitKey(0)
+    '''
+
     #print len(npaContours)
 
     # for c in npaContours:
@@ -252,49 +392,51 @@ def operationsStage3_nontextContoursFiltering(img_pass1):
     #         cv2.imshow('crop',crop)
     #         cv2.waitKey(0)
 
-    r = [0,0]
-    flag = 0 
-    boundary_points = []
-    flag_mid = 0
-    for c in range(1,len(npaContours)):
+    # r = [0,0]
+    # flag = 0 
+    # boundary_points = []
+    # flag_mid = 0
+    # for c in range(1,len(npaContours)):
         
-        mask = np.zeros(img_pass1Copy.shape,np.uint8)
-        cv2.drawContours(mask,npaContours,c,127,1)
+    #     mask = np.zeros(img_pass1Copy.shape,np.uint8)
+    #     cv2.drawContours(mask,npaContours,c,127,1)
 
-        for i in range(0,mask.shape[0]):
-            for j in range(0,mask.shape[1]):
-                if img_pass1Copy[j,i] == 255 and mask[j,i] == 127:
-                    boundary_points.append([j,i])
-                    print erosionCopy[j,i]
-                    if erosionCopy[j,i] == 0:                                
-                        ''' WORKING HERE !!!!!!!!!!!!!!!'''
-                        print 'yeah'
-                    cv2.circle(erosionCopy,(i,j),1,200,-1)
+    #     for i in range(0,mask.shape[0]):
+    #         for j in range(0,mask.shape[1]):
+    #             if img_pass1Copy[j,i] == 255 and mask[j,i] == 127:
+    #                 boundary_points.append([j,i])
+    #                 print erosionCopy[j,i]
+    #                 if erosionCopy[j,i] == 0:                                
+    #                     ''' WORKING HERE !!!!!!!!!!!!!!!'''
+    #                     print 'yeah'
+    #                 cv2.circle(erosionCopy,(i,j),1,200,-1)
         
-        #     if npaContours[c][i][0][0] == r[0] and npaContours[c][i][0][1] == r[1]: 
-        #         flag = 1
-        #         print 'bhak'
-        #         break    
-        #     r = npaContours[c][i][0]
+    #     #     if npaContours[c][i][0][0] == r[0] and npaContours[c][i][0][1] == r[1]: 
+    #     #         flag = 1
+    #     #         print 'bhak'
+    #     #         break    
+    #     #     r = npaContours[c][i][0]
 
-        # cv2.drawContours(mask,[npaContours[c]],0,255,-1)
-        # pixelpoints = cv2.findNonZero(mask)
-        # for i in range(len(pixelpoints)):
-        #     if img_pass1Copy[pixelpoints[i][0][1]+5,pixelpoints[i][0][0]+5] == 255 or img_pass1Copy[pixelpoints[i][0][1]-5,pixelpoints[i][0][0]-5] == 255:
-        #         cv2.circle(mask,(pixelpoints[i][0][0],pixelpoints[i][0][1]),1,128,0)
-        #print boundary_points
+    #     # cv2.drawContours(mask,[npaContours[c]],0,255,-1)
+    #     # pixelpoints = cv2.findNonZero(mask)
+    #     # for i in range(len(pixelpoints)):
+    #     #     if img_pass1Copy[pixelpoints[i][0][1]+5,pixelpoints[i][0][0]+5] == 255 or img_pass1Copy[pixelpoints[i][0][1]-5,pixelpoints[i][0][0]-5] == 255:
+    #     #         cv2.circle(mask,(pixelpoints[i][0][0],pixelpoints[i][0][1]),1,128,0)
+    #     #print boundary_points
         
-        # cv2.imshow('mask',mask)
-        # cv2.imshow('erosionCopy',erosionCopy)
-        # cv2.waitKey(0)
+    #     # cv2.imshow('mask',mask)
+    #     # cv2.imshow('erosionCopy',erosionCopy)
+    #     # cv2.waitKey(0)
 
+    cv2.imshow('imgPass1Copy',img_pass1Copy)
+        
 
 def setup(img):
 
     erosion = operationsStage1_BasicOperations(img)
     img_pass1 = operationsStage2_ContourFiltering(erosion)
     #result = img_pass1.copy()
-    #operationsStage3_nontextContoursFiltering(result)
+    operationsStage3_nontextContoursFiltering(img_pass1)
     #letters_array = letterExtraction(img_pass1)
 
     '''
@@ -303,7 +445,7 @@ def setup(img):
     result = erosion 
     #return result, letters_array
 
-for i in range(1,3):
+for i in range(1,2):
     img = cv2.imread('samples/sample (' + str(i) + ').jpg') 
     out = setup(img)
     #cv2.imshow('out',out)
