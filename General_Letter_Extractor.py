@@ -1,6 +1,12 @@
 import cv2
 import numpy as np
 import math
+try:
+    import Image
+except ImportError:
+    from PIL import Image
+import cv2
+import pytesseract
 
 kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
 
@@ -19,7 +25,7 @@ def letterExtraction(img):
 
             crop = imgCopy[intY:intY+intHeight,intX:intX+intWidth]    
             
-            cv2.rectangle(imgCopy,(intX, intY),(intX + intWidth, intY + intHeight),127,2)
+            #cv2.rectangle(imgCopy,(intX, intY),(intX + intWidth, intY + intHeight),127,2)
 
             ret,crop = cv2.threshold(crop,127,255,cv2.THRESH_BINARY_INV)
 
@@ -31,23 +37,36 @@ def letterExtraction(img):
 
     return list_letters
 
+def tesseract_ocr(path):
+
+    detection = pytesseract.image_to_string(Image.open(path))
+    print detection if len(detection) > 0 else "No letters detected"
 
 def operationsStage1_BasicOperations(img):
 
-    imgEdges = cv2.Canny(img,100,200)
+    img_scaledup = np.zeros((img.shape[1]+5,img.shape[0]+5,3),np.uint8)
+    
+    for i in range(1,img_scaledup.shape[1]-1):
+        for j in range(1,img_scaledup.shape[0]-1):
+
+            img_scaledup[j,i] = 255 if i < 4 or j < 4 or i > img.shape[1]-1 or j > img.shape[0]-1 else img[j,i]
+
+    cv2.imshow('new_Scaling',img_scaledup)
+
+    imgEdges = cv2.Canny(img_scaledup,100,200)
 
     '''
     * As normal threshing ignores the color combination as letters as not be detected generally therefore...
         edge dedtection can detect the edges of the shapes and later text can be seperated
     * Creating a boundary the the boundaries of the image to recognise the half cut contours
     '''
-    for i in range(0,200,199):
-        for j in range(0,200):
-            imgEdges[j,i] = 255
+    # for i in range(0,200,199):
+    #     for j in range(0,200):
+    #         imgEdges[j,i] = 255
 
-    for i in range(0,200,199):
-        for j in range(0,200):
-            imgEdges[i,j] = 255
+    # for i in range(0,200,199):
+    #     for j in range(0,200):
+    #         imgEdges[i,j] = 255
 
     #ret,imgThresh1 = cv2.threshold(imgEdges,150,255,cv2.THRESH_BINARY_INV)
 
@@ -78,7 +97,7 @@ def operationsStage1_BasicOperations(img):
     
     erosion = cv2.erode(imgThresh,kernel,iterations = 1)
     erosion = cv2.medianBlur(erosion, 3)
-    
+
     #img1 = cv2.cvtColor(erosion, cv2.COLOR_GRAY2RGB)
     # dilation = cv2.dilate(imgThresh, kernel, iterations = 1)
 
@@ -151,11 +170,14 @@ def operationsStage2_ContourFiltering(erosion):
     '''
     relatives = []
     home_contours = []
-    for c in range (0,len(npaContours)):
-        
-        if cv2.contourArea(npaContours[c]) > 10 and cv2.contourArea(npaContours[c]) < 8000:
-            heri_child = npaHierarchy[0][c][2]
+    for c in range (0,len(npaContours)): 
+
+        if cv2.contourArea(npaContours[c]) > 30 and cv2.contourArea(npaContours[c]) < 8000:
             
+
+            heri_child = npaHierarchy[0][c][2]
+            heri_parent = npaHierarchy[0][c][3]
+
             maxi = npaContours[c][0][0][0]
             mini = npaContours[c][0][0][0]
 
@@ -170,7 +192,7 @@ def operationsStage2_ContourFiltering(erosion):
                 if npaContours[c][k][0][1] < mini:
                     mini = npaContours[c][k][0][1]
 
-
+            
             #heri_parent = npaHierarchy[0][c][3]
 
             # if heri_child1 == -1 and heri_child == -1:
@@ -179,15 +201,21 @@ def operationsStage2_ContourFiltering(erosion):
             #   relatives = []
 
             #print mini,maxi
-            #if maxi != 197 and mini != 2:
-            if heri_child != -1:
-                relatives.append(c)
+            if maxi != 197 and mini != 2:
+                if heri_child != -1:
+                    relatives.append(c)
+                
+                # elif heri_parent == -1 and heri_child == -1:
+                #     [intX, intY, intWidth, intHeight] = cv2.boundingRect(npaContours[c][k])
+                #     relatives.append(c)
+                #     home_contours.append(relatives)
+                #     relatives = []
             
-            else:
-                relatives.append(c)
-                home_contours.append(relatives)
-                relatives = []
-
+                else:
+                    relatives.append(c)
+                    home_contours.append(relatives)
+                    relatives = []
+            
             #heri_child1 = npaHierarchy[0][c][2]
             #heri_parent1 = npaHierarchy[0][c][3]
 
@@ -242,6 +270,7 @@ def operationsStage2_ContourFiltering(erosion):
                 # pixelpoints = cv2.findNonZero(mask)
                 cv2.drawContours(mask_testing,[npaContours[home_contours[i][1]]],0,255,-1)
                 cv2.drawContours(mask_testing,[npaContours[home_contours[i][len(home_contours[i])-1]]],0,0,-1)
+
 
         #cv2.imshow('mask',mask_testing)
         #cv2.waitKey(0)
@@ -368,7 +397,31 @@ def operationsStage3_nontextContoursFiltering(img_pass1):
 
     img_pass1Copy = img_pass1.copy()
     npaContours, npaHierarchy = cv2.findContours(img_pass1,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-    cv2.drawContours(img_pass1Copy,npaContours,-1,127,2)
+    
+    for i in range(1,len(npaContours)):
+        
+        print 'working'
+        #cv2.drawContours(img_pass1Copy,npaContours,i,127,2)
+        
+        [intX, intY, intWidth, intHeight] = cv2.boundingRect(npaContours[i])
+        area1 = intHeight * intWidth
+        print area1
+
+        for j in range(1,len(npaContours)):
+
+            [X, Y, Width, Height] = cv2.boundingRect(npaContours[j])
+            cx = X + (Width/2)
+            cy = Y + (Height/2)
+            area2 = Width * Height
+
+            #print intX,cx,intX + intWidth,intY,cy,intY + intHeight
+            if intX < cx < intX + intWidth and intY < cy < intY + intHeight and i != j and area1 > area2: 
+
+                cv2.drawContours(img_pass1Copy,npaContours,j,255,-1)
+            #cv2.waitKey(0)
+
+        cv2.imshow('imgPass1Copy',img_pass1Copy)
+        #cv2.waitKey(0)
 
     print len(npaContours)
 
@@ -429,23 +482,25 @@ def operationsStage3_nontextContoursFiltering(img_pass1):
     #     # cv2.waitKey(0)
 
     cv2.imshow('imgPass1Copy',img_pass1Copy)
-        
+    return img_pass1Copy
 
 def setup(img):
 
     erosion = operationsStage1_BasicOperations(img)
     img_pass1 = operationsStage2_ContourFiltering(erosion)
-    #result = img_pass1.copy()
-    operationsStage3_nontextContoursFiltering(img_pass1)
-    #letters_array = letterExtraction(img_pass1)
+    img_pass2 = operationsStage3_nontextContoursFiltering(img_pass1)
+    #letters_array = letterExtraction(img_pass2)
+    cv2.imwrite('temp.jpg',img_pass2)
+    tesseract_ocr('temp.jpg')
+    result = img_pass2.copy()
 
     '''
     *For the implementation uptill now result contains the best result 
     '''
-    result = erosion 
+    #result = erosion 
     #return result, letters_array
 
-for i in range(1,2):
+for i in range(1,56):
     img = cv2.imread('samples/sample (' + str(i) + ').jpg') 
     out = setup(img)
     #cv2.imshow('out',out)
